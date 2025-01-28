@@ -1,0 +1,149 @@
+Requisitos:
+	-> Inserir/Remover e Consultar informação sobre:
+		- Pro_player;
+		- Equipas;
+		- Torneio;
+		- Patrocinadores;
+		- Staff_torneio (Comentadores, Organizadores, Limpeza, Seguranças);
+		- Espetador;
+		- Fighting_game;
+		- Equpa_desenvolvedores;
+
+Queries Complexas a ser feitas:
+	-> Quantos jogadores de 1 equipa específica há num torneio
+	-> Lucro de um Torneio (juntar anuncios e patrocinios e remover salario_staff e prize_pool)
+	-> Ver Desenvolvedores de jogos jogados em torneios por 1 jogador especifico
+	-> Lista de todos os patrocinadores de um torneio/equipa/pro_player
+	-> Quantidade de pro_players a participar num torneio
+
+---------------------------------------------------------------------------------------------------------
+
+Tenho as seguintes queries a ser feitas:
+	-> Quantos jogadores de 1 equipa específica há num torneio
+	-> Lucro de um Torneio (juntar anuncios e patrocinios e remover salario_staff e prize_pool)
+	-> Ver Desenvolvedores de jogos jogados em torneios por 1 jogador especifico
+	-> Lista de todos os patrocinadores de um torneio/equipa/pro_player
+	-> Quantidade de pro_players a participar num torneio
+	-> Valor total investido por cada patrocinador em todos os torneios
+	-> Listar os torneios em que uma equipe específica participou, juntamente com o número de jogadores da equipe que estavam presentes
+	-> Retornar a equipe com a maior média de prêmios em dinheiro ganhos por jogador
+	-> Listar os jogadores de uma equipe específica que participaram de todos os torneios disponíveis
+	-> Listar os jogadores profissionais que participaram de todos os jogos disponíveis desenvolvidos por uma equipe específica
+Como ficam em código?
+
+
+1º -> Quantos jogadores de 1 equipa específica há num torneio
+
+SELECT COUNT(*) AS total_jogadores
+FROM FGC.JogaEm je
+JOIN FGC.ProPlayer pp ON je.nif_pp = pp.nif
+JOIN FGC.Equipa e ON pp.nif_equipa = e.nif
+JOIN FGC.Torneio t ON je.nome_torneio = t.nome
+WHERE e.nome = 'nome_da_equipe'
+  AND t.nome = 'nome_do_torneio';
+--Substitua 'nome_da_equipe' pelo nome da equipe desejada e 'nome_do_torneio' pelo nome do torneio desejado.
+
+
+2º -> Lucro de um Torneio (juntar anuncios e patrocinios e remover salario_staff e prize_pool)
+
+SELECT
+  (t.valor_anuncios + COALESCE(SUM(tp.valor_patrocinado), 0)) AS lucro_torneio
+FROM FGC.Torneio t
+LEFT JOIN FGC.TemTP tp ON t.nome = tp.nome_torneio
+WHERE t.nome = 'nome_do_torneio'
+GROUP BY t.nome;
+--Substitua 'nome_do_torneio' pelo nome do torneio desejado.
+
+3º -> Ver Desenvolvedores de jogos jogados em torneios por 1 jogador especifico
+
+SELECT DISTINCT ed.nome
+FROM FGC.Joga j
+JOIN FGC.ProPlayer pp ON j.nif_pp = pp.nif
+JOIN FGC.EquipaDesenvolvedores ed ON pp.nif_equipa = ed.nif
+WHERE pp.nome = 'nome_do_jogador';
+--Substitua 'nome_do_jogador' pelo nome do jogador específico.
+
+4º -> Lista de todos os patrocinadores de um torneio/equipa/pro_player
+
+SELECT p.nome
+FROM FGC.TemTP tp
+JOIN FGC.Patrocinador p ON tp.nif_patrocinador = p.nif
+WHERE tp.nome_torneio = 'nome_do_torneio';
+--Substitua 'nome_do_torneio' pelo nome do torneio desejado.
+
+SELECT p.nome
+FROM FGC.TemEP te
+JOIN FGC.Patrocinador p ON te.nif_patrocinador = p.nif
+WHERE te.nif_equipa = 'nif_da_equipe';
+--Substitua 'nif_da_equipa' pelo NIF da equipa desejada.
+
+SELECT p.nome
+FROM FGC.TemPP tp
+JOIN FGC.Patrocinador p ON tp.nif_patrocinador = p.nif
+WHERE tp.nif_pp = 'nif_do_pro_player';
+--Substitua 'nif_do_pro_player' pelo NIF do pro player desejado.
+
+
+5º -> Quantidade de pro_players a participar num torneio
+
+SELECT COUNT(*) AS total_pro_players
+FROM FGC.JogaEm je
+WHERE je.nome_torneio = 'nome_do_torneio';
+--Substitua 'nome_do_torneio' pelo nome do torneio desejado.
+
+
+6º -> Valor total investido por cada patrocinador em todos os torneios:
+
+SELECT p.nome AS NomePatrocinador, SUM(tp.valor_patrocinado) AS ValorTotalInvestido
+FROM FGC.TemTP tp
+INNER JOIN FGC.Patrocinador p ON p.nif = tp.nif_patrocinador
+GROUP BY p.nome
+
+
+7º -> Listar os torneios em que uma equipe específica participou, juntamente com o número de jogadores da equipe que estavam presentes
+
+SELECT t.nome AS NomeTorneio, COUNT(je.nif_pp) AS NumJogadores
+FROM FGC.JogaEm je
+INNER JOIN FGC.Torneio t ON t.nome = je.nome_torneio
+WHERE je.nif_equipa = 'NIF da Equipe'
+GROUP BY t.nome
+
+
+8º -> Retornar a equipe com a maior média de prêmios em dinheiro ganhos por jogador
+
+SELECT e.nome AS NomeEquipa, AVG(p.prize_money) AS MediaPremios
+FROM FGC.Equipa e
+INNER JOIN FGC.ProPlayer p ON p.nif = e.nif
+GROUP BY e.nome
+ORDER BY AVG(p.prize_money) DESC
+LIMIT 1
+
+
+9º -> Listar os jogadores de uma equipe específica que participaram de todos os torneios disponíveis
+
+SELECT p.nome AS NomeJogador, je.nome_torneio AS NomeTorneio
+FROM FGC.JogaEm je
+INNER JOIN FGC.ProPlayer p ON p.nif = je.nif_pp
+WHERE je.nif_equipa = 'NIF da Equipe'
+GROUP BY p.nome
+HAVING COUNT(DISTINCT je.nome_torneio) = (SELECT COUNT(*) FROM FGC.Torneio)
+
+
+10º -> Listar os jogadores profissionais que participaram de todos os jogos disponíveis desenvolvidos por uma equipe específica
+
+SELECT p.nome AS NomeJogador
+FROM FGC.ProPlayer p
+WHERE NOT EXISTS (
+    SELECT j.nome_fg
+    FROM FGC.FightingGame j
+    WHERE NOT EXISTS (
+        SELECT jg.nome_fg
+        FROM FGC.Joga jg
+        WHERE jg.nif_pp = p.nif AND jg.nome_fg = j.nome
+    )
+) AND p.nif IN (
+    SELECT je.nif_pp
+    FROM FGC.JogaEm je
+    INNER JOIN FGC.FightingGame j ON j.nome = je.nome_fg
+    WHERE j.nif_ed = 'NIF da EquipeDesenvolvedores'
+)

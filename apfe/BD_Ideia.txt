@@ -1,0 +1,34 @@
+BD competitive scene de FGs (Fighting Games):
+	- Jogadores Profissionais jogam fighting games e em torneios; 
+	- Torneios têm comentadores, organizadores, staff (subdividir posições), audiência (presencial/não presencial) e patrocinadores;
+	- Desenvolvedores desenvolvem os fighting games e fazem anouncements em torneios;
+	- Jogadores pertencem a equipas
+	- Jogadores e audiencia podem ser FGs Content Creators
+	- Vendedores vendem produtos em torneios
+
+Entidades:
+	- Jogadores 		: Nome, username(PK), Characters_played, Games_played, Prize_money;
+
+	- Torneio			: Nome(PK), Prize_pool, FGs_jogados(**), Jogadores_inscritos, bilhetes_vendidos, Valor_anuncios, Valor_patrocinios;
+
+	- Comentadores		: CC, Nome, idade, data_nasc, Games_commentated
+
+	- Organizadores		: CC, 
+
+	- Limpeza			: CC, Nome
+
+	- Seguranças		: CC
+
+	- Staff_torneio		: Num_staff(PK), Salário, Nome, NIF 
+
+	- Audiência(?)		: Horas_assistidas
+
+	- Patrocinadores		: NIF(PK), Nome, Email, telemóvel
+
+	- Equipa_Desenvolvedor 	: Nome(PK), Num_Desenvolvedores, FGs_desenvolvidos
+
+	- Fighting Game		: Nome(PK), Vendas, Active_players, Player_Peak
+
+	- Equipas			: NIF(PK), Nome, Num_jogadores, Num_torneios_ganhos
+
+	- Vendedor			: NIF(PK), Nome, Num_vendas, Poduto_vendido
